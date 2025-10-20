@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Social Network</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #1877f2;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .btn {
+            background: #1877f2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #166fe5;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .post {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #1877f2;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: between;
+            margin-bottom: 8px;
+        }
+
+        .post-user {
+            font-weight: bold;
+            color: #1877f2;
+        }
+
+        .post-content {
+            margin: 10px 0;
+        }
+
+        .post-likes {
+            color: #65676b;
+            font-size: 0.9em;
+        }
+
+        .user-item, .friend-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .influence-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+
+        .network-visual {
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .user-node {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #1877f2;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .connection {
+            position: absolute;
+            height: 2px;
+            background: #1877f2;
+            transform-origin: 0 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 Simple Social Network</h1>
+    
+    <div class="container">
+        <!-- Left Panel - Controls -->
+        <div class="panel">
+            <h2>👤 Users</h2>
+            <div>
+                <input type="text" id="newUserName" placeholder="Enter your name">
+                <button class="btn" onclick="addUser()">Add User</button>
+            </div>
+            
+            <div id="usersList" style="margin-top: 15px;">
+                <!-- Users will appear here -->
+            </div>
+
+            <h2 style="margin-top: 20px;">🤝 Make Friends</h2>
+            <div>
+                <select id="friend1">
+                    <option value="">Select User 1</option>
+                </select>
+                <select id="friend2">
+                    <option value="">Select User 2</option>
+                </select>
+                <button class="btn" onclick="addFriend()">Connect Friends</button>
+            </div>
+
+            <h2 style="margin-top: 20px;">💬 Create Post</h2>
+            <div>
+                <select id="postUser">
+                    <option value="">Select User</option>
+                </select>
+                <textarea id="postContent" placeholder="What's on your mind?" 
+                         style="width: 100%; height: 60px; padding: 8px; margin: 5px 0; 
+                                border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                <button class="btn" onclick="addPost()">Post</button>
+            </div>
+        </div>
+
+        <!-- Right Panel - Display -->
+        <div class="panel">
+            <h2>📱 Recent Posts</h2>
+            <div id="postsFeed">
+                <!-- Posts will appear here -->
+            </div>
+
+            <h2 style="margin-top: 20px;">🏆 Influence Leaderboard</h2>
+            <div id="influenceBoard">
+                <!-- Influence scores will appear here -->
+            </div>
+
+            <h2 style="margin-top: 20px;">🕸️ Network Visualization</h2>
+            <div class="network-visual" id="networkVisual">
+                <div style="color: #666;">Add users and friendships to see network</div>
+            </div>
+
+            <!-- Add this card to the right panel, after the Network Visualization -->
+
+            <h2>📊 DataProcessor Analytics</h2>
+            
+            <div style="margin-bottom: 15px;">
+                <button class="btn" onclick="loadAdvancedAnalytics()">Run Advanced Analysis</button>
+            </div>
+            
+            <div id="analyticsResults">
+                <div style="text-align: center; color: #666; padding: 20px;">
+                    Click "Run Advanced Analysis" to see DataProcessor insights
+                </div>
+            </div>
+
+            <h3 style="margin-top: 20px;">🔍 Post Insights</h3>
+            <div id="postInsights">
+                <!-- Individual post insights will appear here -->
+            </div>
+        </div>
+
+            <h2 style="margin-top: 20px;">👥 Friendships</h2>
+            <div id="friendshipsList">
+                <!-- Friendships will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = {
+            users: [],
+            posts: [],
+            friendships: {},
+            influence: {}
+        };
+
+        let processed_posts = []; // Store processed posts data
+
+        // Load initial data
+        loadData();
+
+        // Load data from server
+        async function loadData() {
+            try {
+                const response = await fetch('/get_data');
+                currentData = await response.json();
+                
+                // Store processed posts if available in response
+                if (currentData.processed_posts) {
+                    processed_posts = currentData.processed_posts;
+                }
+                
+                updateUI();
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        async function loadAdvancedAnalytics() {
+            try {
+                const response = await fetch('/analytics/trending');
+                const analytics = await response.json();
+                
+                if (analytics.error) {
+                    document.getElementById('analyticsResults').innerHTML = 
+                        `<div style="color: #666; text-align: center;">${analytics.error}</div>`;
+                    return;
+                }
+                
+                displayAdvancedAnalytics(analytics);
+                updatePostInsights();
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                document.getElementById('analyticsResults').innerHTML = 
+                    '<div style="color: red;">Error loading analytics</div>';
+            }
+        }
+
+        function displayAdvancedAnalytics(analytics) {
+            const container = document.getElementById('analyticsResults');
+            
+            let html = `
+                <div style="margin-bottom: 15px;">
+                    <strong>Total Posts Analyzed:</strong> ${analytics.total_posts_analyzed}
+                </div>
+            `;
+            
+            // Trending Hashtags
+            if (analytics.trending_hashtags && analytics.trending_hashtags.length > 0) {
+                html += `<h4>🔥 Trending Hashtags</h4>`;
+                analytics.trending_hashtags.forEach(trend => {
+                    html += `
+                        <div style="display: flex; justify-content: space-between; margin: 5px 0; padding: 5px; background: #f8f9fa; border-radius: 5px;">
+                            <span>${trend.hashtag}</span>
+                            <span style="background: #ff6b6b; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8em;">
+                                ${trend.count} posts
+                            </span>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Sentiment Distribution
+            if (analytics.sentiment_distribution) {
+                const sent = analytics.sentiment_distribution;
+                html += `<h4 style="margin-top: 15px;">😊 Sentiment Analysis</h4>`;
+                html += `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;">
+                        <div style="background: #c8e6c9; padding: 10px; border-radius: 5px;">
+                            <div style="font-size: 1.2em;">${sent.positive}</div>
+                            <div style="font-size: 0.8em;">Positive</div>
+                        </div>
+                        <div style="background: #ffcdd2; padding: 10px; border-radius: 5px;">
+                            <div style="font-size: 1.2em;">${sent.negative}</div>
+                            <div style="font-size: 0.8em;">Negative</div>
+                        </div>
+                        <div style="background: #e3f2fd; padding: 10px; border-radius: 5px;">
+                            <div style="font-size: 1.2em;">${sent.neutral}</div>
+                            <div style="font-size: 0.8em;">Neutral</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function updatePostInsights() {
+            const insightsContainer = document.getElementById('postInsights');
+            insightsContainer.innerHTML = '';
+            
+            // Show insights for recent posts - use processed_posts directly
+            const recentProcessed = processed_posts.slice(-3); // Last 3 processed posts
+            
+            recentProcessed.forEach(processedPost => {
+                const insightDiv = document.createElement('div');
+                insightDiv.className = 'post';
+                insightDiv.style.fontSize = '0.9em';
+                
+                const sentimentEmoji = {
+                    'positive': '😊',
+                    'negative': '😞', 
+                    'neutral': '😐'
+                }[processedPost.sentiment] || '😐';
+                
+                insightDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span><strong>${processedPost.user}</strong></span>
+                        <span>${sentimentEmoji} ${processedPost.sentiment}</span>
+                    </div>
+                    <div style="margin: 5px 0; color: #666;">${processedPost.clean_text.substring(0, 50)}...</div>
+                    <div style="display: flex; gap: 10px; font-size: 0.8em;">
+                        <span>📊 ${processedPost.word_count} words</span>
+                        <span>🏷️ ${processedPost.hashtags.length} tags</span>
+                        <span>👥 ${processedPost.mentions.length} mentions</span>
+                        ${processedPost.likes > 0 ? `<span>❤️ ${processedPost.likes} likes</span>` : ''}
+                    </div>
+                `;
+                insightsContainer.appendChild(insightDiv);
+            });
+            
+            if (insightsContainer.children.length === 0) {
+                insightsContainer.innerHTML = '<div style="text-align: center; color: #666;">No post insights available</div>';
+            }
+        }
+        
+
+        // Update all UI elements
+        function updateUI() {
+            updateUsersList();
+            updatePostsFeed();
+            updateInfluenceBoard();
+            updateFriendshipsList();
+            updateNetworkVisual();
+            pdatePostInsights();
+        }
+
+        // Update users dropdowns and list
+        // Update users dropdowns and list - PRESERVE SELECTIONS
+        function updateUsersList() {
+            const usersList = document.getElementById('usersList');
+            const friend1 = document.getElementById('friend1');
+            const friend2 = document.getElementById('friend2');
+            const postUser = document.getElementById('postUser');
+            
+            // Store current selections BEFORE clearing
+            const currentFriend1 = friend1.value;
+            const currentFriend2 = friend2.value;
+            const currentPostUser = postUser.value;
+            
+            // Clear existing options but keep the first option
+            usersList.innerHTML = '';
+            [friend1, friend2, postUser].forEach(select => {
+                // Keep only the first option (placeholder)
+                const placeholder = select.options[0];
+                select.innerHTML = '';
+                select.appendChild(placeholder);
+            });
+            
+            // Add users to all lists
+            currentData.users.forEach(user => {
+                // Users list
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-item';
+                userDiv.innerHTML = `
+                    <span>${user}</span>
+                    <span class="influence-badge">${currentData.influence[user] || 0}</span>
+                `;
+                usersList.appendChild(userDiv);
+                
+                // Dropdown options
+                [friend1, friend2, postUser].forEach(select => {
+                    const option = document.createElement('option');
+                    option.value = user;
+                    option.textContent = user;
+                    select.appendChild(option);
+                });
+            });
+            
+            // Restore selections if they still exist
+            if (currentFriend1 && currentData.users.includes(currentFriend1)) {
+                friend1.value = currentFriend1;
+            }
+            if (currentFriend2 && currentData.users.includes(currentFriend2)) {
+                friend2.value = currentFriend2;
+            }
+            if (currentPostUser && currentData.users.includes(currentPostUser)) {
+                postUser.value = currentPostUser;
+            }
+        }
+
+        // Update posts feed
+        function updatePostsFeed() {
+            const postsFeed = document.getElementById('postsFeed');
+            postsFeed.innerHTML = '';
+            
+            if (currentData.posts.length === 0) {
+                postsFeed.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No posts yet</div>';
+                return;
+            }
+            
+            // Show posts in reverse order (newest first)
+            [...currentData.posts].reverse().forEach(post => {
+                const postDiv = document.createElement('div');
+                postDiv.className = 'post';
+                postDiv.innerHTML = `
+                    <div class="post-header">
+                        <span class="post-user">${post.user}</span>
+                    </div>
+                    <div class="post-content">${post.content}</div>
+                    <div class="post-likes">
+                        <span>❤️ ${post.likes} likes</span>
+                        <button class="btn btn-small" onclick="likePost(${post.id})">Like</button>
+                    </div>
+                `;
+                postsFeed.appendChild(postDiv);
+            });
+        }
+
+        // Update influence leaderboard
+        function updateInfluenceBoard() {
+            const influenceBoard = document.getElementById('influenceBoard');
+            influenceBoard.innerHTML = '';
+            
+            Object.entries(currentData.influence).forEach(([user, score]) => {
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <span>${user}</span>
+                    <span class="influence-badge">${score} influence</span>
+                `;
+                influenceBoard.appendChild(item);
+            });
+        }
+
+        // Update friendships list
+        function updateFriendshipsList() {
+            const friendshipsList = document.getElementById('friendshipsList');
+            friendshipsList.innerHTML = '';
+            
+            Object.entries(currentData.friendships).forEach(([user, friends]) => {
+                if (friends.length > 0) {
+                    const item = document.createElement('div');
+                    item.className = 'friend-item';
+                    item.innerHTML = `
+                        <span><strong>${user}</strong> is friends with:</span>
+                        <span>${friends.join(', ')}</span>
+                    `;
+                    friendshipsList.appendChild(item);
+                }
+            });
+        }
+
+        // Update network visualization
+        function updateNetworkVisual() {
+            const networkVisual = document.getElementById('networkVisual');
+            networkVisual.innerHTML = '';
+            
+            if (currentData.users.length === 0) {
+                networkVisual.innerHTML = '<div style="color: #666;">Add users and friendships to see network</div>';
+                return;
+            }
+            
+            // Simple circular layout for users
+            const radius = 80;
+            const centerX = 150;
+            const centerY = 100;
+            
+            currentData.users.forEach((user, index) => {
+                const angle = (2 * Math.PI * index) / currentData.users.length;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                
+                const node = document.createElement('div');
+                node.className = 'user-node';
+                node.style.left = x + 'px';
+                node.style.top = y + 'px';
+                node.textContent = user[0]; // First letter
+                node.title = user;
+                networkVisual.appendChild(node);
+                
+                // Draw connections
+                const friends = currentData.friendships[user] || [];
+                friends.forEach(friend => {
+                    const friendIndex = currentData.users.indexOf(friend);
+                    if (friendIndex > index) { // Draw each connection once
+                        const friendAngle = (2 * Math.PI * friendIndex) / currentData.users.length;
+                        const friendX = centerX + radius * Math.cos(friendAngle);
+                        const friendY = centerY + radius * Math.sin(friendAngle);
+                        
+                        const connection = document.createElement('div');
+                        connection.className = 'connection';
+                        
+                        const length = Math.sqrt(Math.pow(friendX - x, 2) + Math.pow(friendY - y, 2));
+                        const angle = Math.atan2(friendY - y, friendX - x) * 180 / Math.PI;
+                        
+                        connection.style.width = length + 'px';
+                        connection.style.left = (x + 20) + 'px';
+                        connection.style.top = (y + 20) + 'px';
+                        connection.style.transform = `rotate(${angle}deg)`;
+                        
+                        networkVisual.appendChild(connection);
+                    }
+                });
+            });
+        }
+
+        // API functions
+        async function addUser() {
+            const name = document.getElementById('newUserName').value.trim();
+            if (!name) return;
+            
+            const response = await fetch('/add_user', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name})
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('newUserName').value = '';
+                loadData();
+            } else {
+                alert('User already exists or invalid name');
+            }
+        }
+
+        async function addFriend() {
+            const user1 = document.getElementById('friend1').value;
+            const user2 = document.getElementById('friend2').value;
+            
+            if (!user1 || !user2) {
+                alert('Please select both users');
+                return;
+            }
+            
+            if (user1 === user2) {
+                alert('Cannot friend yourself');
+                return;
+            }
+            
+            const response = await fetch('/add_friend', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user1: user1, user2: user2})
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('friend1').value = '';
+                document.getElementById('friend2').value = '';
+                loadData();
+            } else {
+                alert('Failed to add friendship');
+            }
+        }
+
+        async function addPost() {
+            const user = document.getElementById('postUser').value;
+            const content = document.getElementById('postContent').value.trim();
+            
+            if (!user || !content) {
+                alert('Please select a user and enter content');
+                return;
+            }
+            
+            const response = await fetch('/add_post', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user: user, content: content})
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('postContent').value = '';
+                loadData();
+            } else {
+                alert('Failed to add post');
+            }
+        }
+
+        async function likePost(postId) {
+            const response = await fetch('/like_post', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({post_id: postId})
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                loadData();
+            }
+        }
+
+        // Auto-refresh every 5 seconds
+        setInterval(loadData, 5000);
+    </script>
+</body>
+</html>
